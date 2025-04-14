@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Webcam to Flask</title>
+</head>
+<body>
+  <h1>Webcam Capture</h1>
+
+  <video id="video" width="400" autoplay></video>
+  <br>
+  <button id="snap">Capture Frame</button>
+  <canvas id="canvas" width="400" height="300" style="display: none;"></canvas>
+
+  <form id="upload-form" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="image" id="image-input">
+    <button type="submit">Send to Server</button>
+  </form>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const snap = document.getElementById('snap');
+    const imageInput = document.getElementById('image-input');
+  
+    const constraints = {
+      audio: false,
+      video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        facingMode: "user"
+      }
+    };
+  
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then((stream) => {
+        video.srcObject = stream;
+  
+        // Wait for video metadata to be loaded
+        video.onloadedmetadata = () => {
+          console.log(`Actual resolution: ${video.videoWidth}x${video.videoHeight}`);
+  
+          // resize canvas to match video
+          const scale = 0.25;
+          canvas.width = video.videoWidth * scale;
+          canvas.height = video.videoHeight * scale;
+        };
+      })
+      .catch((err) => {
+        console.error("Error accessing webcam:", err);
+      });
+  
+    // Capture frame on button click
+    snap.addEventListener("click", () => {
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/jpeg');
+      imageInput.value = dataURL;
+    });
+  </script>  
+</body>
+</html>
